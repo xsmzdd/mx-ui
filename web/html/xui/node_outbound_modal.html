@@ -1,0 +1,48 @@
+{{define "nodeOutboundModal"}}
+<a-modal
+        title="设置代理出口"
+        :visible="outboundModal.visible"
+        :confirm-loading="outboundModal.confirmLoading"
+        @ok="saveNodeOutbound"
+        @cancel="closeNodeOutboundModal"
+        ok-text="保存"
+        cancel-text="取消"
+        width="560"
+        wrap-class-name="node-outbound-modal-wrap">
+
+    <a-form-model :model="currentNodeOutbound" layout="vertical" class="node-outbound-form">
+        <a-row :gutter="12">
+            <a-col :span="24">
+                <a-form-model-item label="代理IP/地址">
+                    <a-input v-model="currentNodeOutbound.outboundAddress" placeholder="例如：127.0.0.1 或 socks.example.com"></a-input>
+                </a-form-model-item>
+            </a-col>
+
+            <a-col :span="24">
+                <a-form-model-item label="代理端口">
+                    <a-input-number v-model="currentNodeOutbound.outboundPort" :min="1" :max="65535" style="width: 100%;"></a-input-number>
+                </a-form-model-item>
+            </a-col>
+
+            <a-col :span="12">
+                <a-form-model-item label="用户名">
+                    <a-input v-model="currentNodeOutbound.outboundUsername" placeholder="可留空"></a-input>
+                </a-form-model-item>
+            </a-col>
+
+            <a-col :span="12">
+                <a-form-model-item label="密码">
+                    <a-input-password v-model="currentNodeOutbound.outboundPassword" placeholder="可留空"></a-input-password>
+                </a-form-model-item>
+            </a-col>
+        </a-row>
+
+        <a-alert
+                message="说明"
+                description="只有填写完整的 socks5 地址和端口后，当前节点出口代理才可以启用。未启用或未配置时，该节点走默认出口。"
+                type="info"
+                show-icon>
+        </a-alert>
+    </a-form-model>
+</a-modal>
+{{end}}

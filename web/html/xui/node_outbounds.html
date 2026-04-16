@@ -1,0 +1,137 @@
+{{template "head" .}}
+
+<div id="app"
+     style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hiragino Sans GB','Microsoft YaHei',Arial,sans-serif;
+            font-size:14px;
+            line-height:1.5715;
+            color:rgba(0,0,0,.85);">
+    <a-layout style="min-height: 100vh;">
+        {{ template "commonSider" . }}
+
+        <a-layout style="min-width: 0;">
+            <a-layout-content style="margin: 16px; min-width: 0;">
+                <a-card :bordered="false" style="margin-bottom: 16px;">
+                    <a-row :gutter="[16,16]">
+                        <a-col :xs="24" :sm="12" :md="8">
+                            <div style="font-size: 14px; line-height: 22px; word-break: break-all;">
+                                总上传 / 下载：
+                                <a-tag color="green" style="font-size: 14px;">[[ sizeFormat(total.up) ]] / [[ sizeFormat(total.down) ]]</a-tag>
+                            </div>
+                        </a-col>
+                        <a-col :xs="24" :sm="12" :md="8">
+                            <div style="font-size: 14px; line-height: 22px; word-break: break-all;">
+                                当前总流量：
+                                <a-tag color="green" style="font-size: 14px;">[[ sizeFormat(total.up + total.down) ]]</a-tag>
+                            </div>
+                        </a-col>
+                        <a-col :xs="24" :sm="12" :md="8">
+                            <div style="font-size: 14px; line-height: 22px; word-break: break-all;">
+                                节点数量：
+                                <a-tag color="green" style="font-size: 14px;">[[ dbNodeOutbounds.length ]]</a-tag>
+                            </div>
+                        </a-col>
+                    </a-row>
+                </a-card>
+
+                <a-card :bordered="false" body-style="padding: 24px;">
+                    <div style="margin-bottom: 16px; max-width: 360px; width: 100%;">
+                        <a-input-search
+                                v-model="searchKey"
+                                placeholder="搜索"
+                                allow-clear
+                                style="font-size:14px;"
+                                @search="searchNodeOutbounds"
+                                @change="searchNodeOutbounds">
+                        </a-input-search>
+                    </div>
+
+                    <div style="width: 100%; overflow-x: auto;">
+                        <a-table
+                                :columns="columns"
+                                :data-source="nodeOutbounds"
+                                :loading="loading"
+                                :pagination="false"
+                                row-key="inboundId"
+                                size="middle"
+                                :scroll="{ x: 1320 }"
+                                style="font-size:14px;">
+
+                            <template slot="action" slot-scope="text, record">
+                                <a-dropdown>
+                                    <a class="ant-dropdown-link" style="font-size:14px;" @click.prevent>
+                                        操作
+                                    </a>
+                                    <a-menu slot="overlay">
+                                        <a-menu-item @click="openEditNodeOutbound(record)">
+                                            编辑
+                                        </a-menu-item>
+                                        <a-menu-item @click="delNodeOutbound(record)">
+                                            删除
+                                        </a-menu-item>
+                                    </a-menu>
+                                </a-dropdown>
+                            </template>
+
+                            <template slot="enable" slot-scope="text, record">
+                                <a-switch
+                                        :checked="record.outboundEnable"
+                                        @change="(checked) => toggleNodeOutbound(record, checked)">
+                                </a-switch>
+                            </template>
+
+                            <template slot="protocol" slot-scope="text, record">
+                                <a-tag color="blue" style="font-size:12px;">[[ record.protocol ]]</a-tag>
+                            </template>
+
+                            <template slot="traffic" slot-scope="text, record">
+                                <span style="font-size:14px;">[[ sizeFormat(record.up) ]] / [[ sizeFormat(record.down) ]]</span>
+                            </template>
+
+                            <template slot="proxyAddress" slot-scope="text, record">
+                                <span v-if="record.outboundAddress" style="font-size:14px;">[[ record.outboundAddress ]]</span>
+                                <a-tag v-else style="font-size:12px;">未设置</a-tag>
+                            </template>
+
+                            <template slot="proxyPort" slot-scope="text, record">
+                                <span v-if="record.outboundPort > 0" style="font-size:14px;">[[ record.outboundPort ]]</span>
+                                <a-tag v-else style="font-size:12px;">未设置</a-tag>
+                            </template>
+
+                            <template slot="latencyResult" slot-scope="text, record">
+                                <div v-if="record.latencyResult" class="node-latency-cell">
+                                    <div class="node-latency-line">
+                                        <span class="node-latency-label">IP延迟</span>
+                                        <a-tag :color="getLatencyTagColor(record.latencyResult.ipStatus)">[[ record.latencyResult.ipLatency ]]</a-tag>
+                                    </div>
+                                    <div class="node-latency-line">
+                                        <span class="node-latency-label">IP:端口</span>
+                                        <a-tag :color="getLatencyTagColor(record.latencyResult.portStatus)">[[ record.latencyResult.portLatency ]]</a-tag>
+                                    </div>
+                                </div>
+                                <a-tag v-else style="font-size:12px;">未检测</a-tag>
+                            </template>
+
+                            <template slot="latencyAction" slot-scope="text, record">
+                                <a-button
+                                        type="primary"
+                                        size="small"
+                                        :loading="record.latencyLoading"
+                                        @click="detectLatency(record)">
+                                    检测延迟
+                                </a-button>
+                            </template>
+
+                        </a-table>
+                    </div>
+                </a-card>
+            </a-layout-content>
+        </a-layout>
+    </a-layout>
+
+    {{template "nodeOutboundModal"}}
+    {{template "promptModal"}}
+</div>
+
+{{template "js" .}}
+<script src="{{ .base_path }}assets/js/model/models.js"></script>
+<script src="{{ .base_path }}assets/js/node_outbounds.js"></script>

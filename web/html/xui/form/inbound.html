@@ -1,0 +1,165 @@
+{{define "form/inbound"}}
+<!-- base -->
+<a-form layout="inline">
+    <a-form-item label='{{ i18n "remark" }}'>
+        <a-input v-model.trim="dbInbound.remark"></a-input>
+    </a-form-item>
+    <a-form-item label='{{ i18n "enable" }}'>
+        <a-switch v-model="dbInbound.enable"></a-switch>
+    </a-form-item>
+    <a-form-item v-if="!inModal.isEdit" label="批量">
+        <a-switch v-model="dbInbound.batchEnable"></a-switch>
+    </a-form-item>
+    <a-form-item label='{{ i18n "protocol" }}'>
+        <a-select v-model="inbound.protocol" style="width: 160px;">
+            <a-select-option v-for="p in Protocols" :key="p" :value="p">[[ p ]]</a-select-option>
+        </a-select>
+    </a-form-item>
+    <a-form-item>
+        <span slot="label">
+            监听 IP
+            <a-tooltip>
+                <template slot="title">
+                    默认留空即可
+                </template>
+                <a-icon type="question-circle" theme="filled"></a-icon>
+            </a-tooltip>
+        </span>
+        <a-input v-model.trim="inbound.listen"></a-input>
+    </a-form-item>
+    <a-form-item label="端口">
+        <a-input type="number" v-model.number="inbound.port"></a-input>
+    </a-form-item>
+    <a-form-item>
+        <span slot="label">
+            总流量(GB)
+            <a-tooltip>
+                <template slot="title">
+                    0 表示不限制
+                </template>
+                <a-icon type="question-circle" theme="filled"></a-icon>
+            </a-tooltip>
+        </span>
+        <a-input-number v-model="dbInbound.totalGB" :min="0"></a-input-number>
+    </a-form-item>
+    <a-form-item>
+        <span slot="label">
+            到期时间
+            <a-tooltip>
+                <template slot="title">
+                    留空则永不到期
+                </template>
+                <a-icon type="question-circle" theme="filled"></a-icon>
+            </a-tooltip>
+        </span>
+        <a-date-picker :show-time="{ format: 'HH:mm' }" format="YYYY-MM-DD HH:mm"
+                       v-model="dbInbound._expiryTime" style="width: 300px;"></a-date-picker>
+    </a-form-item>
+
+    <a-form-item label="自动重置">
+        <a-switch v-model="dbInbound.reset"></a-switch>
+    </a-form-item>
+
+    <a-form-item>
+        <span slot="label">
+            重置周期(天)
+            <a-tooltip>
+                <template slot="title">
+                    开启自动重置后生效，0 表示不自动重置
+                </template>
+                <a-icon type="question-circle" theme="filled"></a-icon>
+            </a-tooltip>
+        </span>
+        <a-input-number v-model="dbInbound.resetDay"
+                        :min="0"
+                        :disabled="!dbInbound.reset"></a-input-number>
+    </a-form-item>
+
+    <a-form-item>
+        <span slot="label">
+            上次重置时间
+            <a-tooltip>
+                <template slot="title">
+                    仅展示，系统自动维护
+                </template>
+                <a-icon type="question-circle" theme="filled"></a-icon>
+            </a-tooltip>
+        </span>
+        <a-input
+            :value="dbInbound.lastResetTime ? DateUtil.formatMillis(dbInbound.lastResetTime) : ''"
+            disabled
+            style="width: 220px;">
+        </a-input>
+    </a-form-item>
+</a-form>
+
+<!-- vmess settings -->
+<template v-if="inbound.protocol === Protocols.VMESS">
+    {{template "form/vmess"}}
+</template>
+
+<!-- vless settings -->
+<template v-if="inbound.protocol === Protocols.VLESS">
+    {{template "form/vless"}}
+</template>
+
+<!-- trojan settings -->
+<template v-if="inbound.protocol === Protocols.TROJAN">
+    {{template "form/trojan"}}
+</template>
+
+<!-- shadowsocks -->
+<template v-if="inbound.protocol === Protocols.SHADOWSOCKS">
+    {{template "form/shadowsocks"}}
+</template>
+
+<!-- dokodemo-door -->
+<template v-if="inbound.protocol === Protocols.DOKODEMO">
+    {{template "form/dokodemo"}}
+</template>
+
+<!-- socks -->
+<template v-if="inbound.protocol === Protocols.SOCKS">
+    {{template "form/socks"}}
+</template>
+
+<!-- http -->
+<template v-if="inbound.protocol === Protocols.HTTP">
+    {{template "form/http"}}
+</template>
+
+<!-- stream settings -->
+<template v-if="inbound.canEnableStream()">
+    {{template "form/streamSettings"}}
+</template>
+
+<!-- tls settings -->
+<template v-if="inbound.canEnableTls()">
+    {{template "form/tlsSettings"}}
+</template>
+
+<!-- sniffing -->
+<template v-if="inbound.canSniffing()">
+    {{template "form/sniffing"}}
+</template>
+
+<template v-if="inModal.canBatchAdd()">
+    <a-form layout="vertical" style="margin-top: 16px;">
+        <a-form-item>
+            <span slot="label">
+                批量 socks5 出口
+                <a-tooltip>
+                    <template slot="title">
+                        每行一个，格式：IP:端口:用户名:密码。生成的节点数量等于输入的 socks5 行数，端口从当前端口开始依次递增。
+                    </template>
+                    <a-icon type="question-circle" theme="filled"></a-icon>
+                </a-tooltip>
+            </span>
+            <a-textarea
+                v-model.trim="dbInbound.batchSocks5Text"
+                :auto-size="{ minRows: 6, maxRows: 12 }"
+                placeholder="每行一个 socks5，格式：IP:端口:用户名:密码"></a-textarea>
+        </a-form-item>
+    </a-form>
+</template>
+{{end}}
